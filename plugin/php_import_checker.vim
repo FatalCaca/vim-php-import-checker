@@ -2,7 +2,7 @@
 " Maintainer:   simon.ballu@gmail.com
 " Version:      0.1
 
-function FetchImportedClasses()
+function s:fetchImportedClasses()
     let file = readfile(expand("%:p"))
     let importedClasses = []
 
@@ -24,7 +24,7 @@ function FetchImportedClasses()
     return importedClasses
 endfunction
 
-function DoesNeighbourClassExist(className)
+function s:doesNeighbourClassExist(className)
     let currentPath = expand('%:p:h')
     let potentialNeighbourClassFile = currentPath . '/' . a:className . '.php'
 
@@ -41,7 +41,7 @@ function DoesNeighbourClassExist(className)
     return 0
 endfunction
 
-function RunAsyncFunctionIfPossible(functionName)
+function! s:runAsyncFunctionIfPossible(functionName)
     if v:version < 800
         :call a:functionName()
         return
@@ -50,17 +50,17 @@ function RunAsyncFunctionIfPossible(functionName)
     :call timer_start(1, a:functionName)
 endfunction
 
-function ClearMatchGroup(groupName)
+function s:clearMatchGroup(groupName)
     for m in filter(getmatches(), { i, v -> l:v.group is? a:groupName})
         :call matchdelete(m.id)
     endfor
 endfunction
 
-function HighlightUnusedUses(timer)
+function! php_import_checker#HighlightUnusedUses(timer)
     normal! mq
-    let importedClasses = FetchImportedClasses()
+    let importedClasses = s:fetchImportedClasses()
     :highlight UnusedImportsGroup ctermbg=brown guibg=brown
-    :call ClearMatchGroup('UnusedImportsGroup')
+    :call s:clearMatchGroup('UnusedImportsGroup')
 
     for class in importedClasses
         if (
@@ -77,13 +77,11 @@ function HighlightUnusedUses(timer)
 
     normal! 'q
 endfunction
-" }}}
 
-" Highlight classes whose import can't be found {{{
-function HighlightUnimportedClasses(timer)
+function php_import_checker#HighlightUnimportedClasses(timer)
     let classNameRegex = '[A-Z][a-zA-Z0-9_]*'
     :highlight Classes ctermbg=red guibg=red
-    :call ClearMatchGroup('Classes')
+    :call s:clearMatchGroup('Classes')
 
     let file = readfile(expand("%:p"))
     let usedClasses = {}
@@ -139,13 +137,18 @@ function HighlightUnimportedClasses(timer)
         endfor
     endfor
 
-    let importedClasses = FetchImportedClasses()
+    let importedClasses = s:fetchImportedClasses()
 
     for [className, classPositions] in items(usedClasses)
         if index(importedClasses, className) == -1
-            \ && !DoesNeighbourClassExist(className)
+            \ && !s:doesNeighbourClassExist(className)
 
             :call matchaddpos('Classes', classPositions)
         endif
     endfor
 endfunction
+
+autocmd BufWritePost *.php
+    \ call s:runAsyncFunctionIfPossible('php_import_checker#HighlightUnusedUses')
+    \ | call s:runAsyncFunctionIfPossible('php_import_checker#HighlightUnimportedClasses')
+
