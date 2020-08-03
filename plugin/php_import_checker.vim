@@ -70,8 +70,9 @@ function! php_import_checker#HighlightUnusedUses(timer)
             \ && [0, 0] == searchpos('\v\@' . class)
             \ && [0, 0] == searchpos('\vclass.*(extends|implements).*' . class)
             \ && [0, 0] == searchpos('\vuse *' . class)
+            \ && [0, 0] == searchpos('\C\v(\@var +)@<=' . class)
             \ )
-            :call matchadd('UnusedImportsGroup', '\v^use .*' . class . ';')
+            :call matchadd('UnusedImportsGroup', '\v^use .*\\' . class . ';')
         endif
     endfor
 
@@ -106,9 +107,10 @@ function php_import_checker#HighlightUnimportedClasses(timer)
             \ '\C\v' . classNameRegex . '( +\$\w*)@=',
             \ '\C\v\@@<=' . classNameRegex,
             \ '\C\v(class.*(extends|implements) *)@<=' . classNameRegex,
-            \ '\C\v(use *)@<=' . classNameRegex . ';',
+            \ '\C\v(use *)@<=' . classNameRegex . ';@=',
             \ '\C\v(\) *: *)@<=' . classNameRegex,
             \ '\C\v^( *: *)@<=' . classNameRegex,
+            \ '\C\v(\@var +)@<=' . classNameRegex,
         \ ]
             let reducedLine = line
             let matchPos = matchstrpos(reducedLine, classPattern)
