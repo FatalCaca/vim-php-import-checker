@@ -104,13 +104,14 @@ function php_import_checker#HighlightUnimportedClasses(timer)
         for classPattern in [
             \ '\C\v(new +)@<=' . classNameRegex,
             \ '\C\v' . classNameRegex . '(::)@=',
-            \ '\C\v' . classNameRegex . '( +\$\w*)@=',
+            \ '\C\v(\\|\w)@<!' . classNameRegex . '( +\$\w*)@=',
             \ '\C\v\@@<=' . classNameRegex,
             \ '\C\v(class.*(extends|implements) *)@<=' . classNameRegex,
             \ '\C\v(use *)@<=' . classNameRegex . ';@=',
             \ '\C\v(\) *: *)@<=' . classNameRegex,
             \ '\C\v^( *: *)@<=' . classNameRegex,
             \ '\C\v(\@var +)@<=' . classNameRegex,
+            \ '\C\v\@@<=' . classNameRegex . '(\\)@=',
         \ ]
             let reducedLine = line
             let matchPos = matchstrpos(reducedLine, classPattern)
