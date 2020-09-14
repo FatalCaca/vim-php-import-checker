@@ -13,7 +13,7 @@ function s:fetchImportedClasses()
             break
         endif
 
-        let matches = matchlist(line, '\v^use .*\\%(\w+ +as +)?(\w+);')
+        let matches = matchlist(line, '\v^use +%(\w+\\)*%(\w+ +as +)?(\w+);')
         let className = get(matches, 1, '0')
 
         if (className != '0')
@@ -69,10 +69,13 @@ function! php_import_checker#HighlightUnusedUses(timer)
             \ && [0, 0] == searchpos('\v' . class . ' +\$\w*')
             \ && [0, 0] == searchpos('\v\@' . class)
             \ && [0, 0] == searchpos('\vclass.*(extends|implements).*' . class)
-            \ && [0, 0] == searchpos('\vuse *' . class)
+            \ && [0, 0] == searchpos('\v +use *' . class)
             \ && [0, 0] == searchpos('\C\v(\@var +)@<=' . class)
+            \ && [0, 0] == searchpos('\v\) *: *' . class)
+            \ && [0, 0] == searchpos('\v\@method *' . class)
+            \ && [0, 0] == searchpos('\vinstanceof *' . class)
             \ )
-            :call matchadd('UnusedImportsGroup', '\v^use .*\\' . class . ';')
+            :call matchadd('UnusedImportsGroup', '\v^use +%(\w+\\)*' . class . ';')
         endif
     endfor
 
